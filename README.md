@@ -29,5 +29,5 @@ Requirements
 ---
 The only thing you need is Pillow.
 ```bash
-pip3 install PIL
+$ pip3 install pillow
 ```
