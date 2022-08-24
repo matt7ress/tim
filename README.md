@@ -24,3 +24,10 @@ Took 4.494 (4.4941550827026367) seconds
 -*-*-
 ```
 Part after -\*-\*- is text you need to copy and paste to textwall.cc.
+
+Requirements
+---
+The only thing you need is Pillow.
+```bash
+pip3 install PIL
+```
