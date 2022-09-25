@@ -2,47 +2,17 @@
 import math, time, random
 imgname = input('Image: ')
 img = Image.open(imgname)
+rot = input('Rotate: ').lower()
+if(rot not in ['', 'no', 'none', 'null']):
+    img = img.rotate(-float(rot))
 img.thumbnail((int(input('Output width: ')), int(input('Output height: '))))
-crop = input('Crop: ').lower()
+crop = input('Crop (fx-fy-tx-ty or nothing): ').lower()
 if(crop not in ['', 'no', 'none', 'null']):
-    img = img.crop(tuple([int(crop.split(':')[i]) for i in range(4)]))
-start = time.time()
+    img = img.crop(tuple([int(crop.split('-')[i]) for i in range(4)]))
 escape = '\x1b'
-block = '█'
+block = '█▓'
 colors = [
-    [
-        'A', #black
-        '_', #dark grey
-        'B', #grey
-        'C', #light grey
-        'X', #burgundy
-        'P', #dark red
-        'E', #red
-        'F', #orange
-        'H', #yellow
-        'Y', #pale yellow
-        'Q', #dark green
-        'J', #green
-        'I', #light green
-        'R', #dark teal
-        'S', #teal
-        'Z', #light teal
-        'M', #dark blue
-        'L', #blue
-        'K', #light blue
-        'T', #indigo
-        'U', #periwinkle
-        '[', #lavender
-        'O', #dark purple
-        'N', #purple
-        '\\',#pale purple
-        ']', #magenta
-        'V', #pink
-        'D', #light pink
-        'W', #dark brown
-        'G', #brown
-        '^'  #beige
-    ],
+    list('ÀÞÁÂ×ÏÄÅÇØÐÉÈÑÒÙÌËÊÓÔÚÎÍÛÜÕÃÖÆÝÀ'),
     [
         0,
         0x515252,
@@ -54,12 +24,12 @@ colors = [
         0xffa800,
         0xffd635,
         0xfff8b8,
-        0x00a368,
-        0x00cc78,
+          0xa368,
+          0xcc78,
         0x7eed56,
-        0x00756f,
-        0x009eaa,
-        0x00ccc0,
+          0x756f,
+          0x9eaa,
+          0xccc0,
         0x2450a4,
         0x3690ea,
         0x51e9f4,
@@ -69,7 +39,7 @@ colors = [
         0x811e9f,
         0xb44ac0,
         0xe4abff,
-        0xde107f,
+        0xbe107f,
         0xff3881,
         0xff99aa,
         0x6d482f,
@@ -81,11 +51,16 @@ colors = [
 def getClosestColor(color: int) -> int:
     r, g, b = eval(f'(0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[0:2]}, 0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[2:4]}, 0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[4:6]})')
     color_diffs = []
-    for color in colors[1]:
-        cr, cg, cb = eval(f'(0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[0:2]}, 0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[2:4]}, 0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[4:6]})')
-        color_diff = math.sqrt((r - cr)**2 + (g - cg)**2 + (b - cb)**2)
-        color_diffs.append((color_diff, eval(f'(0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[0:2]}, 0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[2:4]}, 0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[4:6]})')))
-    return list(min(color_diffs)[1])[2] + list(min(color_diffs)[1])[1] * 256 + list(min(color_diffs)[1])[0] * 65536
+    for __color in colors[1]:
+        for _color in range(2):
+            color = __color + 0x2d2d2d * _color
+            if(color >= 0xffffff and __color < 0xffffff):
+                continue
+            cr, cg, cb = eval(f'(0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[0:2]}, 0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[2:4]}, 0x{("0"*(8-len(hex(color)))+hex(color)[2:8])[4:6]})')
+            color_diff = math.sqrt((r - cr)**2 + (g - cg)**2 + (b - cb)**2)
+            color_diffs.append((color_diff, block[_color] if __color != 0xffffff else ' ', colors[0][colors[1].index(__color)]))
+    return [min(color_diffs)[1], min(color_diffs)[2]]
+start = time.time()
 width, height = img.size
 img = [list(img.getdata())[i*width:(i+1)*width] for i in range(height)]
 output = ''
@@ -93,26 +68,31 @@ for iy in range(height):
     ly = img[iy]
     for ix in range(width):
         px = ly[ix]
-        ind = colors[1].index(getClosestColor(list(px)[2] + list(px)[1] * 256 + list(px)[0] * 65536))
-        if(ind == len(colors[0])):
-            output += '  '
-        else:
-            output += block * 2
+        output += getClosestColor(list(px)[2] + list(px)[1] * 256 + list(px)[0] * 65536)[0] * 2
     output += '\n'
 output = output[0:-1] + escape
 for iy in range(height):
     ly = img[iy]
     for ix in range(width):
         px = ly[ix]
-        ind = colors[1].index(getClosestColor(list(px)[2] + list(px)[1] * 256 + list(px)[0] * 65536))
-        if(ind == len(colors[0])):
-            output += 'AA'
+        cc = getClosestColor(list(px)[2] + list(px)[1] * 256 + list(px)[0] * 65536)
+        if(cc[0] == ' '):
+            output += 'ÀÀ'
         else:
-            output += colors[0][ind] * 2
+            output += cc[1] * 2
     output += 'A'
 output = output[0:-1]
-file = open(f'{imgname}.output-{"".join([str(random.randint(0, 9)) for i in range(random.randint(2, 7))])}', 'x', encoding = 'utf8')
 finished = time.time()
 took = finished - start
+try:
+    file = open(f'{imgname}.textwall', 'x', encoding = 'utf8')
+    filewithoutextrainfo = open(f'{imgname}.without-extra-info.textwall', 'x', encoding = 'utf8')
+except FileExistsError:
+    print('[i] Files exist! Overwriting!')
+    file = open(f'{imgname}.textwall', 'w', encoding = 'utf8')
+    filewithoutextrainfo = open(f'{imgname}.without-extra-info.textwall', 'w', encoding = 'utf8')
 print(f'Took {round(took, 3)} seconds')
-file.write(f'Made with T.I.M. By Matrus.\nInput: {imgname}\nCrop: {crop}\nOutput size (in symbols): {width * 2 * height}\nTook {round(took, 3)} ({took}) seconds\n-*-*-\n{output}')
+file.write(f'Made with T.I.M. By Matrus.\nInput: {imgname}\nRotate: {rot}\nCrop: {crop}\nOutput size:\n - Symbols: {width * 2 * height}\n - Width & Height: {width}x{height}\nTook {round(took, 3)}s ({took}s)\nWithout info - {imgname}.without-extra-info.textwall\n-*-*-\n{output}')
+file.close()
+filewithoutextrainfo.write(output)
+filewithoutextrainfo.close()
