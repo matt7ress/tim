@@ -30,4 +30,6 @@ Requirements
 The only thing you need is Pillow.
 ```bash
 $ pip3 install pillow
+# or
+$ sudo apt install python3-pil
 ```
